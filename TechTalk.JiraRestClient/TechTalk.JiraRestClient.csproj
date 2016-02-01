@@ -44,8 +44,12 @@
     <Compile Include="Comment.cs" />
     <Compile Include="CommentsContainer.cs" />
     <Compile Include="Compatibility.cs" />
+    <Compile Include="ExistingSessionInfo.cs" />
     <Compile Include="IssueType.cs" />
+    <Compile Include="LoginInfo.cs" />
+    <Compile Include="NewSessionInfo.cs" />
     <Compile Include="ServerInfo.cs" />
+    <Compile Include="SessionInfo.cs" />
     <Compile Include="WatchersContainer.cs" />
     <Compile Include="IJiraClient.cs" />
     <Compile Include="Issue.cs" />

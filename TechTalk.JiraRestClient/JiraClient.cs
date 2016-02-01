@@ -14,23 +14,27 @@ namespace TechTalk.JiraRestClient
 
     public class JiraClient<TIssueFields> : IJiraClient<TIssueFields> where TIssueFields : IssueFields, new()
     {
-        private readonly string username;
-        private readonly string password;
+        public string username { get; set; }
         private readonly JsonDeserializer deserializer;
         private readonly string baseApiUrl;
-        public JiraClient(string baseUrl, string username, string password)
-        {
-            this.username = username;
-            this.password = password;
+        private readonly string authApiUrl;
+        private string sessionCookie;
 
-            baseApiUrl = new Uri(new Uri(baseUrl), "rest/api/2/").ToString();
+        public JiraClient(string baseUrl)
+        {
+            baseApiUrl = new Uri(new Uri(baseUrl), "rest/api/2").ToString();
+            authApiUrl = new Uri(new Uri(baseUrl), "rest/auth/1/session").ToString();
             deserializer = new JsonDeserializer();
+            sessionCookie = null;
         }
 
         private RestRequest CreateRequest(Method method, String path)
         {
             var request = new RestRequest { Method = method, Resource = path, RequestFormat = DataFormat.Json };
-            request.AddHeader("Authorization", "Basic " + Convert.ToBase64String(Encoding.UTF8.GetBytes(String.Format("{0}:{1}", username, password))));
+            if (sessionCookie != null)
+            {
+                request.AddHeader("cookie", sessionCookie);
+            }
             return request;
         }
 
@@ -48,6 +52,61 @@ namespace TechTalk.JiraRestClient
                 throw new JiraClientException("JIRA returned wrong status: " + response.StatusDescription, response.Content);
         }
 
+        public String AuthenticateNewSession(String username, String password)
+        {
+            this.sessionCookie = null;
+            try
+            {
+                var request = CreateRequest(Method.POST, null);
+                request.AddHeader("ContentType", "application/json");
+                var credentials = new Dictionary<string, object>();
+                credentials["username"] = username;
+                credentials["password"] = password;
+                request.AddBody(credentials);
+
+                var client = new RestClient(authApiUrl);
+                var response = client.Execute(request);
+                var newSession = deserializer.Deserialize<NewSessionInfo>(response);
+                this.sessionCookie = String.Format("{0}={1}", newSession.session.name, newSession.session.value);
+                this.username = username;
+            }
+            catch (Exception ex)
+            {
+                Trace.TraceError("AuthenticateNewSession(username, password) error: {0}", ex);
+            }
+
+            return this.sessionCookie;
+        }
+
+        public bool AuthenticateSession(String sessionCookie)
+        {
+            bool validSession = false;
+
+            if (!string.IsNullOrEmpty(sessionCookie))
+            {
+                try
+                {
+                    this.sessionCookie = sessionCookie;
+                    var request = CreateRequest(Method.GET, null);
+                    var client = new RestClient(authApiUrl);
+                    var response = client.Execute(request);
+                    var existingSession = deserializer.Deserialize<ExistingSessionInfo>(response);
+                    if (existingSession.loginInfo != null)
+                    {
+                        this.username = existingSession.name;
+                        validSession = true;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Trace.TraceError("AuthenticateSession(sessionCookie) error: {0}", ex);
+                    this.sessionCookie = null;
+                    validSession = false;
+                }
+            }
+
+            return validSession;
+        }
 
         public IEnumerable<Issue<TIssueFields>> GetIssues(String projectKey)
         {

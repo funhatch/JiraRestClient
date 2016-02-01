@@ -7,6 +7,11 @@ namespace TechTalk.JiraRestClient
 {
     public interface IJiraClient<TIssueFields> where TIssueFields : IssueFields, new()
     {
+        /// <summary>Create a new server session using the specified login credentials. Returns the session cookie</summary>
+        String AuthenticateNewSession(String username, String password);
+        /// <summary>Authenticate against the server using an existing session</summary>
+        bool AuthenticateSession(String sessionCookie);
+
         /// <summary>Returns all issues for the given project</summary>
         IEnumerable<Issue<TIssueFields>> GetIssues(String projectKey);
         /// <summary>Returns all issues of the specified type for the given project</summary>
