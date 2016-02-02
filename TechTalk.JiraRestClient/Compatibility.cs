@@ -79,6 +79,9 @@ namespace TechTalk.JiraRestClient
         /// <summary>Returns all issue types</summary>
         IEnumerable<IssueType> GetIssueTypes();
 
+        /// <summary>Get all projects</summary>
+        IEnumerable<Project> GetProjects();
+
         /// <summary>Returns information about the JIRA server</summary>
         ServerInfo GetServerInfo();
     }
@@ -241,6 +244,11 @@ namespace TechTalk.JiraRestClient
         public IEnumerable<IssueType> GetIssueTypes()
         {
             return client.GetIssueTypes();
+        }
+
+        public IEnumerable<Project> GetProjects()
+        {
+            return client.GetProjects();
         }
 
         public ServerInfo GetServerInfo()
