@@ -655,5 +655,26 @@ namespace TechTalk.JiraRestClient
                 throw new JiraClientException("Could not retrieve server information", ex);
             }
         }
+
+        public IEnumerable<Project> GetProjects()
+        {
+            try
+            {
+                var request = CreateRequest(Method.GET, "project");
+                request.AddHeader("ContentType", "application/json");
+
+                var response = ExecuteRequest(request);
+                AssertStatus(response, HttpStatusCode.OK);
+
+                var data = deserializer.Deserialize<List<Project>>(response);
+                return data;
+
+            }
+            catch (Exception ex)
+            {
+                Trace.TraceError("GetIssueTypes() error: {0}", ex);
+                throw new JiraClientException("Could not load projects", ex);
+            }
+        }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace TechTalk.JiraRestClient
 {
@@ -9,6 +10,6 @@ namespace TechTalk.JiraRestClient
 
         public Status to { get; set; }
 
-        public object fields { get; set; }
+        public Dictionary<string, object> fields { get; set; }
     }
 }
